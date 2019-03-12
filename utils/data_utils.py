@@ -495,12 +495,36 @@ for train_index, test_index in kf.split(train_numpy):
     X_train, X_test = train_numpy[train_index], train_numpy[test_index]
     X_train_labels, X_test_labels = train_labels[train_index], train_labels[test_index]
     clf.fit(X_train, X_train_labels)
-    average_train += clf.score(X_train,X_train_labels)
-    average_test += clf.score(X_test,X_test_labels)
+    average_train += clf.score(X_train, X_train_labels)
+    average_test += clf.score(X_test, X_test_labels)
     print(clf.score(X_train, X_train_labels))
     print(clf.score(X_test, X_test_labels))
 
-
 print("AVERAGE RESULTS")
-print(str(average_train/5))
-print(str(average_test/5))
+print(str(average_train / 5))
+print(str(average_test / 5))
+
+poly_svm = svm.SVC(kernel="poly", degree=3)
+
+poly_svm.fit(train_numpy, train_labels)
+
+print("POLY NOT MIXED RESULTS")
+
+print(poly_svm.score(train_numpy, train_labels))
+print(poly_svm.score(test_numpy, test_labels))
+
+for train_index, test_index in kf.split(train_numpy):
+    print("####################4444")
+
+    # print("TRAIN:", train_index, "TEST:", test_index)
+    X_train, X_test = train_numpy[train_index], train_numpy[test_index]
+    X_train_labels, X_test_labels = train_labels[train_index], train_labels[test_index]
+    poly_svm.fit(X_train, X_train_labels)
+    average_train += poly_svm.score(X_train, X_train_labels)
+    average_test += poly_svm.score(X_test, X_test_labels)
+    print(poly_svm.score(X_train, X_train_labels))
+    print(poly_svm.score(X_test, X_test_labels))
+
+print("AVERAGE KFOLD RESULTS")
+print(str(average_train / 5))
+print(str(average_test / 5))
