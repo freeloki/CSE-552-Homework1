@@ -3,7 +3,7 @@ import numpy as np
 import math
 import operator
 from sklearn.model_selection import KFold, cross_val_score, GridSearchCV
-from sklearn import metrics
+from sklearn import metrics, svm
 
 # data_path
 DATA_PATH = "../dataset/leaf/leaf.csv"
@@ -211,7 +211,7 @@ print(len(test_numpy[0]))
     print("Without Norm Test K : " + str(test_k) + "  Positive:" + str(positive))
     print("Without Norm Test K : " + str(test_k) + "  Negative:" + str(negative))
 """
-for x in range(0, len(test_numpy), 1):
+"""for x in range(0, len(test_numpy), 1):
     temp_point = test_numpy[x]
     # print("BEFORE_NORM")
     # print(temp_point)
@@ -234,7 +234,7 @@ for x in range(0, len(train_numpy), 1):
     # print("AFTER_NORM")
     # print(temp_point)
     train_numpy[x] = temp_point
-
+"""
 # print("K : " + str(k_size) + " True:" + str(positive) + " False: " + str(negative) + "  Negative Accuracy Rate % " + str(
 # (100 * negative) / (positive + negative)))
 
@@ -300,7 +300,7 @@ knn = KNeighborsClassifier(n_neighbors=1)
 
 label_x = np.empty(257)
 test_label_x = np.empty(83)
-for x in range(0,len(train_numpy),1):
+for x in range(0, len(train_numpy), 1):
     label_x[x] = train_numpy[x][0]
 
 for x in range(0, len(test_numpy), 1):
@@ -310,21 +310,21 @@ awesome = knn.fit(train_numpy, label_x)
 
 param_grid = {"n_neighbors": np.arange(1, 25)}
 knn_gscv = GridSearchCV(knn, param_grid, cv=5)
-#fit model to data
+# fit model to data
 knn_gscv.fit(train_numpy, label_x)
 print(knn.score(test_numpy, test_label_x))
-#print(knn_gscv.best_estimator_)
-#print(knn_gscv.best_params_)
+
+
+# print(knn_gscv.best_estimator_)
+# print(knn_gscv.best_params_)
 
 
 def manhattan_distance(data1, data2):
-
-    if(len(data1) != len(data2)):
-       print("Be sure that both vectors are the same dimension!")
-       return
+    if (len(data1) != len(data2)):
+        print("Be sure that both vectors are the same dimension!")
+        return
 
     return sum([abs(data1[i] - data2[i]) for i in range(len(data1))])
-
 
 
 def k_nearest_neighbourhood_manhattan(training_set, test_instance, k):
@@ -387,6 +387,7 @@ def k_nearest_neighbourhood_manhattan(training_set, test_instance, k):
     #### End of STEP 3.5
 
 
+"""
 for test_k in range(1, 13, 2):
     positive = 0
     negative = 0
@@ -436,3 +437,70 @@ for test_k in range(1, 15, 2):
             negative += 1
     print("TEST DATA K : " + str(test_k) + " True:" + str(positive) + " False: " + str(negative) + "  Positive Accuracy Rate % " + str(
      (100 * positive) / (positive + negative)))
+
+"""
+
+############# SVM STARTS HERE #######################
+
+
+train_labels = []
+test_labels = []
+
+
+def delete_first_two_column(data_array):
+    label_array = np.empty(len(data_array))
+    for index_label in range(0, len(data_array), 1):
+        print("Doing:" + str(index_label))
+        print("DATA: " + str(data_array[index_label][0]))
+        label_array[index_label] = data_array[index_label][0]
+
+    data_array = np.delete(data_array, np.s_[0:2], axis=1)
+
+    return data_array, label_array
+
+
+print(train_numpy[0][0])
+
+print(len(train_numpy))
+train_numpy, train_labels = delete_first_two_column(train_numpy)
+test_numpy, test_labels = delete_first_two_column(test_numpy)
+
+print(train_numpy[0])
+print(train_labels[0])
+
+print(test_numpy[80])
+print(test_labels[80])
+
+clf = svm.LinearSVC(penalty='l2', verbose=0, max_iter=10000, class_weight=None)
+
+clf.fit(train_numpy, train_labels, sample_weight=None)
+
+# print(str(train_numpy))
+print(str(test_labels))
+
+print("###---- WHOLE TRAIN DATA START ----####")
+print(clf.score(train_numpy, train_labels))
+print("###---- WHOLE TRAIN DATA END  ----####")
+
+print("###---- WHOLE TEST DATA START ----####")
+print(clf.score(test_numpy, test_labels))
+print("###---- WHOLE TEST DATA END  ----####")
+
+average_train = 0
+average_test = 0
+for train_index, test_index in kf.split(train_numpy):
+    print("####################333")
+
+    # print("TRAIN:", train_index, "TEST:", test_index)
+    X_train, X_test = train_numpy[train_index], train_numpy[test_index]
+    X_train_labels, X_test_labels = train_labels[train_index], train_labels[test_index]
+    clf.fit(X_train, X_train_labels)
+    average_train += clf.score(X_train,X_train_labels)
+    average_test += clf.score(X_test,X_test_labels)
+    print(clf.score(X_train, X_train_labels))
+    print(clf.score(X_test, X_test_labels))
+
+
+print("AVERAGE RESULTS")
+print(str(average_train/5))
+print(str(average_test/5))
