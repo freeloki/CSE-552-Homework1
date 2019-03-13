@@ -211,7 +211,8 @@ print(len(test_numpy[0]))
     print("Without Norm Test K : " + str(test_k) + "  Positive:" + str(positive))
     print("Without Norm Test K : " + str(test_k) + "  Negative:" + str(negative))
 """
-"""for x in range(0, len(test_numpy), 1):
+"""
+for x in range(0, len(test_numpy), 1):
     temp_point = test_numpy[x]
     # print("BEFORE_NORM")
     # print(temp_point)
@@ -528,3 +529,67 @@ for train_index, test_index in kf.split(train_numpy):
 print("AVERAGE KFOLD RESULTS")
 print(str(average_train / 5))
 print(str(average_test / 5))
+
+########## DECISION TREE START ##################
+
+from sklearn import tree
+from sklearn.model_selection import cross_val_score
+
+my_decision_tree = tree.DecisionTreeClassifier(criterion="gini", class_weight="balanced")
+
+my_decision_tree.fit(X_train, X_train_labels)
+
+print("DTREE RESULTS")
+
+print(my_decision_tree.score(X_train, X_train_labels))
+print(my_decision_tree.score(X_test, X_test_labels))
+
+print(cross_val_score(my_decision_tree, X_train, X_train_labels, cv=3))
+print(cross_val_score(my_decision_tree, X_test, X_test_labels, cv=3))
+
+
+def get_lineage(tree, feature_names):
+    left = tree.tree_.children_left
+    right = tree.tree_.children_right
+    threshold = tree.tree_.threshold
+    features = [feature_names[i] for i in tree.tree_.feature]
+
+    # get ids of child nodes
+    idx = np.argwhere(left == -1)[:, 0]
+
+    def recurse(left, right, child, lineage=None):
+        if lineage is None:
+            lineage = [child]
+        if child in left:
+            parent = np.where(left == child)[0].item()
+            split = 'l'
+        else:
+            parent = np.where(right == child)[0].item()
+            split = 'r'
+
+        lineage.append((parent, split, threshold[parent], features[parent]))
+
+        if parent == 0:
+            lineage.reverse()
+            return lineage
+        else:
+            return recurse(left, right, parent, lineage)
+
+    for child in idx:
+        for node in recurse(left, right, child):
+            print(node)
+
+
+# get_lineage(my_decision_tree,X_train_labels)
+
+
+dtree = tree.DecisionTreeClassifier(class_weight="balanced", criterion='gini', max_depth=150,
+            max_features=13, max_leaf_nodes=50, min_samples_leaf=1,
+            min_samples_split=2, min_weight_fraction_leaf=0.0,
+            presort=False, random_state=None, splitter='random')
+dtree.fit(X_train, X_train_labels)
+
+print(dtree.score(X_train,X_train_labels))
+print(dtree.score(X_test,X_test_labels))
+
+#print(cross_val_score(dtree, X_train_labels, cv=5))
