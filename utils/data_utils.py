@@ -6,7 +6,7 @@ from sklearn.model_selection import KFold, cross_val_score, GridSearchCV
 from sklearn import metrics, svm
 
 # data_path
-DATA_PATH = "../dataset/leaf/leaf.csv"
+DATA_PATH = "dataset/leaf/leaf.csv"
 
 columns = ["Class",
            "Specimen",
@@ -154,6 +154,7 @@ def k_nearest_neighbourhood(training_set, test_instance, k):
     #### End of STEP 3.5
 
 
+"""
 training_data, testing_data = split_training_and_testing_data(load_data(DATA_PATH))
 
 total_train = 0
@@ -181,7 +182,7 @@ print(test_numpy.shape)
 print(test_numpy[0])
 print(train_numpy[0])
 
-"""test_index = 67;
+test_index = 67;
 result, neigbours = k_nearest_neighbourhood(train_numpy, test_numpy[test_index], 5)
 print("Expected Class: " + str(int(test_numpy[test_index][0])))
 print("Predicted Class: ", int(result))
@@ -194,24 +195,53 @@ print("Nearest Neighbours: ", neigbours)"""
 # normalize data:
 
 
-positive = 0
+"""positive = 0
 negative = 0
 print(len(test_numpy[0]))
-
-"""for test_k in range(1, 13, 2):
-    positive = 0
-    negative = 0
-    for x in range(0, len(test_numpy)):
-        sorted2, neigbours2 = k_nearest_neighbourhood(train_numpy, test_numpy[x], test_k)
-        if int(test_numpy[x][0]) == int(sorted2):
-            positive += 1
-        else:
-            negative += 1
-
-    print("Without Norm Test K : " + str(test_k) + "  Positive:" + str(positive))
-    print("Without Norm Test K : " + str(test_k) + "  Negative:" + str(negative))
 """
+
+
+def find_best_k_value_without_norm(train_numpy):
+    train_results = {}
+    split_size = 5
+    kf = KFold(n_splits=split_size, random_state=False, shuffle=True)
+
+    splits = kf.get_n_splits(train_numpy)
+
+    print("Splits: " + str(splits))
+
+    for k_size in range(1, 15, 2):
+        mean_pos = 0
+        X_train = []
+        X_test = []
+        for train_index, test_index in kf.split(train_numpy):
+            # print("TRAIN:", train_index, "TEST:", test_index)
+            X_train, X_test = train_numpy[train_index], train_numpy[test_index]
+
+            positive = 0
+            negative = 0
+            for x in range(0, len(X_test)):
+                sorted2, neigbours2 = k_nearest_neighbourhood(X_train, X_test[x], k_size)
+                if int(X_test[x][0]) == int(sorted2):
+                    positive += 1
+                else:
+                    negative += 1
+
+            temp_acc = (100 * positive) / (positive + negative)
+            mean_pos += temp_acc
+            #print("TrainSize: " + str(len(X_train)) + " TestSize:" + str(len(X_test)))
+        # print("K : " + str(k_size) + " True:" + str(positive) + " False: " + str(negative) + "  Positive Accuracy Rate % " + str(
+        # (100 * positive) / (positive + negative)))
+        train_results[k_size] = (100 * positive) / (positive + negative)
+        # print("K : " + str(k_size) + " True:" + str(positive) + " False: " + str(negative) + "  Negative Accuracy Rate % " + str(
+        # (100 * negative) / (positive + negative)))
+
+        print("K SIZE : " + str(k_size) + " MEAN ACC  % " + str(mean_pos / split_size))
+    return train_results
+
+
 """
+
 for x in range(0, len(test_numpy), 1):
     temp_point = test_numpy[x]
     # print("BEFORE_NORM")
@@ -238,7 +268,7 @@ for x in range(0, len(train_numpy), 1):
 """
 # print("K : " + str(k_size) + " True:" + str(positive) + " False: " + str(negative) + "  Negative Accuracy Rate % " + str(
 # (100 * negative) / (positive + negative)))
-
+"""
 split_size = 5
 kf = KFold(n_splits=split_size, random_state=False, shuffle=True)
 
@@ -246,7 +276,7 @@ splits = kf.get_n_splits(train_numpy)
 
 print("Splits: " + str(splits))
 
-"""for k_size in range(1, 15, 2):
+for k_size in range(1, 15, 2):
     mean_pos = 0
     for train_index, test_index in kf.split(train_numpy):
         # print("TRAIN:", train_index, "TEST:", test_index)
@@ -271,7 +301,6 @@ print("Splits: " + str(splits))
 
     print("K SIZE : " + str(k_size) + " MEAN ACC  % " + str(mean_pos / split_size))
 
-
 for test_k in range(1, 15, 2):
     positive = 0
     negative = 0
@@ -281,39 +310,20 @@ for test_k in range(1, 15, 2):
             positive += 1
         else:
             negative += 1
-    print("TEST DATA K : " + str(test_k) + " True:" + str(positive) + " False: " + str(negative) + "  Positive Accuracy Rate % " + str(
-     (100 * positive) / (positive + negative)))
+    print("TEST DATA K : " + str(test_k) + " True:" + str(positive) + " False: " + str(
+        negative) + "  Positive Accuracy Rate % " + str(
+        (100 * positive) / (positive + negative)))
 
-
-scores = cross_val_score(k_nearest_neighbourhood, train_numpy, train_numpy[0], cv=5, scoring='f1_macro')"""
+scores = cross_val_score(k_nearest_neighbourhood, train_numpy, train_numpy[0], cv=5, scoring='f1_macro')
 
 from sklearn.neighbors import KNeighborsClassifier
 
 # Create KNN classifier
 """
 
-        - 'ball_tree' will use :class:`BallTree`
-        - 'kd_tree' will use :class:`KDTree`
-        - 'brute' will use a brute-force search.
-        - 'auto' will attempt to decide the most appropriate algorithm"""
-knn = KNeighborsClassifier(n_neighbors=1)
-# Fit the classifier to the data
+"""
 
-label_x = np.empty(257)
-test_label_x = np.empty(83)
-for x in range(0, len(train_numpy), 1):
-    label_x[x] = train_numpy[x][0]
-
-for x in range(0, len(test_numpy), 1):
-    test_label_x[x] = test_numpy[x][0]
-
-awesome = knn.fit(train_numpy, label_x)
-
-param_grid = {"n_neighbors": np.arange(1, 25)}
-knn_gscv = GridSearchCV(knn, param_grid, cv=5)
-# fit model to data
-knn_gscv.fit(train_numpy, label_x)
-print(knn.score(test_numpy, test_label_x))
+"""
 
 
 # print(knn_gscv.best_estimator_)
@@ -443,7 +453,7 @@ for test_k in range(1, 15, 2):
 
 ############# SVM STARTS HERE #######################
 
-
+"""
 train_labels = []
 test_labels = []
 
@@ -584,12 +594,13 @@ def get_lineage(tree, feature_names):
 
 
 dtree = tree.DecisionTreeClassifier(class_weight="balanced", criterion='gini', max_depth=150,
-            max_features=13, max_leaf_nodes=50, min_samples_leaf=1,
-            min_samples_split=2, min_weight_fraction_leaf=0.0,
-            presort=False, random_state=None, splitter='random')
+                                    max_features=13, max_leaf_nodes=50, min_samples_leaf=1,
+                                    min_samples_split=2, min_weight_fraction_leaf=0.0,
+                                    presort=False, random_state=None, splitter='random')
 dtree.fit(X_train, X_train_labels)
 
-print(dtree.score(X_train,X_train_labels))
-print(dtree.score(X_test,X_test_labels))
+print(dtree.score(X_train, X_train_labels))
+print(dtree.score(X_test, X_test_labels))
 
-#print(cross_val_score(dtree, X_train_labels, cv=5))
+# print(cross_val_score(dtree, X_train_labels, cv=5))
+"""
